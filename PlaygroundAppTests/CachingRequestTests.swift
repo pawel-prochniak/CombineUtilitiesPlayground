@@ -3,7 +3,7 @@ import Combine
 import XCTest
 import PlaygroundApp
 
-class CachingRequestTests: XCTestCase {
+class CacheableRequestTests: XCTestCase {
     var cancellables = [AnyCancellable]()
 
     struct TestError: Error, Equatable { }
@@ -15,7 +15,7 @@ class CachingRequestTests: XCTestCase {
     func test_get_whenRequestIsNil_shouldComplete() {
         let sut = CacheableRequest<Int>(publisherGetter: { nil })
 
-        let exp = XCTestExpectation(description: "Completion receive")
+        let exp = XCTestExpectation(description: "Completion received")
         sut.get()
             .sink(receiveCompletion: { _ in exp.fulfill() },
                   receiveValue: { _ in })
@@ -192,9 +192,6 @@ class CachingRequestTests: XCTestCase {
         wait(for: [exp, exp2], timeout: 1)
     }
 
-    @CacheableRequest(publisherGetter: { PassthroughSubject<Int, Error>().eraseToAnyPublisher() })
-    var publisher: AnyPublisher<Int, Error>
-
     func test_subscribe_whenValueCached_shouldReturnCachedValue() {
         var subscribeCount = 0
         let subject = PassthroughSubject<Int, Error>()
@@ -248,7 +245,7 @@ class CachingRequestTests: XCTestCase {
         wait(for: [exp, exp2], timeout: 1)
     }
 
-    func test_subscribe_whenRequestFails_shouldReturnError() {
+    func test_subscribe_whenRequestFails_shouldNotFail() {
         var getCount = 0
         let publisherGetter: () -> AnyPublisher<Int, Error> = {
             getCount += 1
@@ -263,8 +260,65 @@ class CachingRequestTests: XCTestCase {
         let sut = CacheableRequest(publisherGetter: publisherGetter)
         let exp = sut.subscribe().wait(for: TestError())
             .store(in: &cancellables)
+        exp.isInverted = true
 
-        wait(for: [exp], timeout: 1)
+        wait(for: [exp], timeout: 0.1)
+    }
+
+    func test_subscribe_whenSingleValueIsReturnedThenRequestFails_shouldReturnValueAndNotFail() {
+        var getCount = 0
+        let publisherGetter: () -> AnyPublisher<Int, Error> = {
+            getCount += 1
+            switch getCount {
+            case 1: return Just(2).setFailureType(to: Error.self).eraseToAnyPublisher()
+            case 2: return Fail(error: TestError()).eraseToAnyPublisher()
+            default: XCTFail("Expected two calls to get publisher, but got \(getCount)")
+                return Fail(error: TestError()).eraseToAnyPublisher()
+            }
+        }
+
+        let sut = CacheableRequest(publisherGetter: publisherGetter)
+        let subscribeValueExp = XCTestExpectation(description: "Value received")
+        let subscribeErrorNotReceivedExp = XCTestExpectation(description: "Error received")
+        subscribeErrorNotReceivedExp.isInverted = true
+        sut.subscribe().sink(
+            receiveCompletion: { completion in
+                switch completion {
+                case .failure(_): subscribeErrorNotReceivedExp.fulfill()
+                case .finished: XCTFail("Subscribe should not complete as .finished")
+                }
+            },
+            receiveValue: { _ in subscribeValueExp.fulfill() })
+            .store(in: &cancellables)
+        let expError = sut.get(forceRefresh: true).wait(for: TestError())
+            .store(in: &cancellables)
+        wait(for: [expError, subscribeValueExp, subscribeErrorNotReceivedExp], timeout: 0.1)
+    }
+
+    func test_subscribe_whenRequestIsNil_shouldNotComplete() {
+        let sut = CacheableRequest<Int>(publisherGetter: { nil })
+
+        let exp = XCTestExpectation(description: "Completion not received")
+        exp.isInverted = true
+        sut.subscribe()
+            .sink(receiveCompletion: { _ in exp.fulfill() },
+                  receiveValue: { _ in })
+            .store(in: &cancellables)
+
+        wait(for: [exp], timeout: 0.1)
+    }
+
+    func test_subscribeWithInitialCatch_whenRequestIsNil_shouldNotComplete() {
+        let sut = CacheableRequest<Int>(publisherGetter: { nil })
+
+        let exp = XCTestExpectation(description: "Completion not received")
+        exp.isInverted = true
+        sut.subscribe { _ in }
+            .sink(receiveCompletion: { _ in exp.fulfill() },
+                  receiveValue: { _ in })
+            .store(in: &cancellables)
+
+        wait(for: [exp], timeout: 0.1)
     }
 
     func test_subscribeWithInitialCatch_whenRequestFails_shouldNotReturnError() {
@@ -327,7 +381,7 @@ class CachingRequestTests: XCTestCase {
 
         let initialErrorExp = XCTestExpectation(description: "Initial request failed")
         let sut = CacheableRequest(publisherGetter: publisherGetter)
-        let exp = sut.subscribe { error in initialErrorExp.fulfill() }
+        let exp = sut.subscribe { _ in initialErrorExp.fulfill() }
             .wait(for: TestError())
             .store(in: &cancellables)
         exp.isInverted = true
@@ -353,7 +407,7 @@ class CachingRequestTests: XCTestCase {
 
         let initialErrorExp = XCTestExpectation(description: "Initial request failed")
         let sut = CacheableRequest(publisherGetter: publisherGetter)
-        let exp = sut.subscribe { error in initialErrorExp.fulfill() }
+        let exp = sut.subscribe { _ in initialErrorExp.fulfill() }
             .wait(for: 2)
             .store(in: &cancellables)
         let exp2 = sut.get()
@@ -364,6 +418,7 @@ class CachingRequestTests: XCTestCase {
         XCTAssertEqual(subscribeCount, 1)
     }
 
+    // swiftlint:disable:next line_length
     func test_subscribeWithInitialCatch_whenInitialRequestFailsWithTwoSubscribersAndValueIsEmittedLater_shouldReturnValueToBothSubscribers() {
         var getCount = 0
         let subject1 = PassthroughSubject<Int, Error>()
@@ -414,9 +469,7 @@ class CachingRequestTests: XCTestCase {
         notCompletedExp.isInverted = true
         let sut = CacheableRequest(publisherGetter: publisherGetter)
         sut.subscribe { _ in }
-            .sink(receiveCompletion: { completion in
-                notCompletedExp.fulfill()
-            },
+            .sink(receiveCompletion: { _ in notCompletedExp.fulfill() },
                   receiveValue: { _ in })
             .store(in: &cancellables)
         let errorOnGetExp = sut.get()

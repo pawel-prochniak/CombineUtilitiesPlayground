@@ -51,9 +51,6 @@ class CombineTests: XCTestCase {
         var cancellables = [AnyCancellable]()
         let subject = PassthroughSubject<Int, Never>()
         let promise = subject.eraseToAnyPublisher().toPromise(store: &cancellables)
-//        let promise =  Promise { resolver in
-//             subject.sink(receiveValue: { output in resolver.fulfill(output)})
-//        }
         subject.send(1)
         XCTAssertEqual(promise.isFulfilled, true)
     }
@@ -97,65 +94,3 @@ extension Sequence {
     }
 }
 
-public extension Publishers {
-    struct Expectation {
-        let cancellable: AnyCancellable
-        let expectation: XCTestExpectation
-
-        public func store<C>(in collection: inout C) -> XCTestExpectation where C: RangeReplaceableCollection, C.Element == AnyCancellable {
-            collection.append(cancellable)
-            return expectation
-        }
-    }
-}
-
-extension Publisher {
-    func wait<T: Equatable>(for expectedOutputs: T...,
-                            line: UInt = #line,
-                            filePath: StaticString = #filePath) -> Publishers.Expectation where T == Output {
-        let exp = XCTestExpectation(description: "Expected values received")
-        var receivedValues = [T]()
-        let cancellable = sink(
-            receiveCompletion: { completion in
-                switch completion {
-                case .finished: break
-                case .failure(let error):
-                    XCTFail("Received error \(error.localizedDescription)", file: filePath, line: line)
-                }
-            },
-            receiveValue: { newValue in
-                receivedValues.append(newValue)
-                if receivedValues.count == expectedOutputs.count {
-                    if expectedOutputs.elementsEqual(receivedValues) {
-                        exp.fulfill()
-                    } else {
-                        XCTFail("Expected \(expectedOutputs) is not equal to \(receivedValues)",
-                                file: filePath,
-                                line: line)
-                    }
-                }
-            }
-        )
-        return Publishers.Expectation(cancellable: cancellable, expectation: exp)
-    }
-
-    func wait<E>(for error: E,
-                 line: UInt = #line,
-                 filePath: StaticString = #filePath)
-    -> Publishers.Expectation where E: Equatable, E: Error {
-        let exp = XCTestExpectation(description: "Expected error received")
-        let cancellable = sink(receiveCompletion: { completion in
-            switch completion {
-            case let .failure(reason):
-                XCTAssertEqual(reason as? E, error)
-                exp.fulfill()
-            case .finished:
-                XCTFail("Expected error \(error.localizedDescription), got value .finished", file: filePath, line: line)
-            }
-        }, receiveValue: { value in
-            XCTFail("Expected error \(error.localizedDescription), got value \(value)", file: filePath, line: line)
-        })
-        return Publishers.Expectation(cancellable: cancellable, expectation: exp)
-    }
-
-}

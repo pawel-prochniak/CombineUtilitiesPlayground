@@ -11,11 +11,11 @@
 		0911975E26E9CD1C006C8162 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0911975D26E9CD1C006C8162 /* ContentView.swift */; };
 		0911976026E9CD1E006C8162 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0911975F26E9CD1E006C8162 /* Assets.xcassets */; };
 		0911976326E9CD1E006C8162 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0911976226E9CD1E006C8162 /* Preview Assets.xcassets */; };
-		0911976E26E9CD1F006C8162 /* PlaygroundAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0911976D26E9CD1F006C8162 /* PlaygroundAppTests.swift */; };
 		0911978726E9CD87006C8162 /* CombineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0911978626E9CD87006C8162 /* CombineTests.swift */; };
 		0911978F26F37DB8006C8162 /* CachingRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0911978E26F37DB8006C8162 /* CachingRequestTests.swift */; };
 		0911979226F38078006C8162 /* PromiseKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0911979126F38078006C8162 /* PromiseKit */; };
-		0911979A26F9E3D0006C8162 /* CachingRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0911979926F9E3D0006C8162 /* CachingRequest.swift */; };
+		0911979A26F9E3D0006C8162 /* CacheableRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0911979926F9E3D0006C8162 /* CacheableRequest.swift */; };
+		09FD953C26FB20DA00233E81 /* Publisher+Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09FD953B26FB20DA00233E81 /* Publisher+Tests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,12 +36,12 @@
 		0911976226E9CD1E006C8162 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		0911976426E9CD1E006C8162 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0911976926E9CD1F006C8162 /* PlaygroundAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlaygroundAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		0911976D26E9CD1F006C8162 /* PlaygroundAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaygroundAppTests.swift; sourceTree = "<group>"; };
 		0911976F26E9CD1F006C8162 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0911977A26E9CD1F006C8162 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0911978626E9CD87006C8162 /* CombineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombineTests.swift; sourceTree = "<group>"; };
 		0911978E26F37DB8006C8162 /* CachingRequestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachingRequestTests.swift; sourceTree = "<group>"; };
-		0911979926F9E3D0006C8162 /* CachingRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachingRequest.swift; sourceTree = "<group>"; };
+		0911979926F9E3D0006C8162 /* CacheableRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheableRequest.swift; sourceTree = "<group>"; };
+		09FD953B26FB20DA00233E81 /* Publisher+Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publisher+Tests.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,7 +90,7 @@
 				0911975F26E9CD1E006C8162 /* Assets.xcassets */,
 				0911976426E9CD1E006C8162 /* Info.plist */,
 				0911976126E9CD1E006C8162 /* Preview Content */,
-				0911979926F9E3D0006C8162 /* CachingRequest.swift */,
+				0911979926F9E3D0006C8162 /* CacheableRequest.swift */,
 			);
 			path = PlaygroundApp;
 			sourceTree = "<group>";
@@ -106,10 +106,10 @@
 		0911976C26E9CD1F006C8162 /* PlaygroundAppTests */ = {
 			isa = PBXGroup;
 			children = (
-				0911976D26E9CD1F006C8162 /* PlaygroundAppTests.swift */,
 				0911976F26E9CD1F006C8162 /* Info.plist */,
 				0911978626E9CD87006C8162 /* CombineTests.swift */,
 				0911978E26F37DB8006C8162 /* CachingRequestTests.swift */,
+				09FD953B26FB20DA00233E81 /* Publisher+Tests.swift */,
 			);
 			path = PlaygroundAppTests;
 			sourceTree = "<group>";
@@ -227,7 +227,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0911979A26F9E3D0006C8162 /* CachingRequest.swift in Sources */,
+				0911979A26F9E3D0006C8162 /* CacheableRequest.swift in Sources */,
 				0911975E26E9CD1C006C8162 /* ContentView.swift in Sources */,
 				0911975C26E9CD1C006C8162 /* PlaygroundAppApp.swift in Sources */,
 			);
@@ -237,8 +237,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				09FD953C26FB20DA00233E81 /* Publisher+Tests.swift in Sources */,
 				0911978F26F37DB8006C8162 /* CachingRequestTests.swift in Sources */,
-				0911976E26E9CD1F006C8162 /* PlaygroundAppTests.swift in Sources */,
 				0911978726E9CD87006C8162 /* CombineTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
